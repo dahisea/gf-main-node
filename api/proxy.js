@@ -5,7 +5,7 @@ const cors = require('cors');
 const app = express();
 app.use(cors());
 
-const primaryServers = ['https://gf-n-main-1.dahiddwy.workers.dev', 'https://gf-n-main-2.dahiddwy.workers.dev'];
+const primaryServers = ['https://example.com'];
 const backupServers = ['https://cn-greasyfork.org'];
 const MAX_RETRIES = 1;
 const REQUEST_TIMEOUT = 6000;
