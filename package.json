@@ -1,20 +1,22 @@
 {
   "name": "vercel-proxy",
   "version": "1.0.0",
-  "description": "A simple HTTP proxy server deployed on Vercel",
+  "description": "A proxy server ",
   "main": "api/proxy.js",
   "scripts": {
     "start": "vercel dev",
     "deploy": "vercel deploy --prod"
   },
   "dependencies": {
-    "http-proxy": "^1.18.1",
-    "micro": "^9.3.4"
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "vercel": "^28.0.0"
   },
   "engines": {
     "node": "18.x"
-  }
+  },
+  "license": "MIT"
 }
