@@ -1,31 +1,32 @@
-const http = require('http');
-const httpProxy = require('http-proxy');
+const express = require('express');
+const { createProxyMiddleware } = require('http-proxy-middleware');
+const cors = require('cors');
 
-// 创建代理实例
-const proxy = httpProxy.createProxyServer({});
+const app = express();
 
-// 定义目标服务器
-const TARGET_SERVER = 'https://example.com'; // 替换为你的目标服务器
+// 启用 CORS
+app.use(cors());
 
-// 创建 HTTP 服务器
-const server = http.createServer((req, res) => {
-    console.log(`Proxying request to: ${TARGET_SERVER}${req.url}`);
+// 代理所有请求到 x.ai
+app.use(
+  '/',
+  createProxyMiddleware({
+    target: 'https://example.com',
+    changeOrigin: true,
+    onProxyReq: (proxyReq, req) => {
+      // 转发原始 Authorization 头
+      if (req.headers.authorization) {
+        proxyReq.setHeader('Authorization', req.headers.authorization);
+      }
+    },
+    onProxyRes: (proxyRes) => {
+      // 添加 CORS 头
+      proxyRes.headers['Access-Control-Allow-Origin'] = '*';
+      proxyRes.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS';
+      proxyRes.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
+    },
+  })
+);
 
-    // 将请求代理到目标服务器
-    proxy.web(req, res, { target: TARGET_SERVER });
-});
-
-// 监听代理服务器的错误事件
-proxy.on('error', (err, req, res) => {
-    console.error('Proxy error:', err);
-    res.writeHead(500, {
-        'Content-Type': 'text/plain'
-    });
-    res.end('Proxy error occurred.');
-});
-
-// 启动服务器
-const PORT = process.env.PORT || 3000; // 使用环境变量中的端口号，或默认 3000
-server.listen(PORT, () => {
-    console.log(`Proxy server is running on http://localhost:${PORT}`);
-});
+// Vercel 需要导出 app
+module.exports = app;
