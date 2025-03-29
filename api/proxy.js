@@ -44,7 +44,7 @@ async function fetchWithRetry(request, retries = 5) {
   }
 }async function handleRequest(request) {
   const nodeHeader = request.headers.get('node');
-  if (nodeHeader !== 'dahi') {
+  if (nodeHeader == 'dahi') {
     return new Response(null, { status: 444 });
   }
   const url = new URL(request.url);
