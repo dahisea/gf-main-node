@@ -6,7 +6,7 @@ export default async (req, res) => {
     // 1. Construct target URL
     const path = Array.isArray(req.query.path) ? req.query.path.join('/') : '';
     const search = req.url.includes('?') ? req.url.split('?')[1] : '';
-    const targetUrl = new URL(`https://greasyfork.org/${path}${search ? `?${search}` : ''}`);
+    const targetUrl = new URL(`https://50.116.4.196/${path}${search ? `?${search}` : ''}`);
 
     // 2. Prepare headers with modified Host
     const headers = new Headers();
