@@ -3,31 +3,19 @@ import fetch from 'node-fetch';
 export default async (req, res) => {
   try {
     // 1. Construct target URL
-    const path = req.query.path?.join('/') || '';
-    const search = req.url.includes('?') ? `?${req.url.split('?')[1]}` : '';
-    const targetUrl = new URL(`https://example.com/${path}${search}`);
+    const path = Array.isArray(req.query.path) ? req.query.path.join('/') : '';
+    const search = req.url.includes('?') ? req.url.split('?')[1] : '';
+    const targetUrl = new URL(`https://example.com/${path}${search ? `?${search}` : ''}`);
 
-    // 2. Prepare headers
-    const headers = new Headers(req.headers);
-    headers.delete('host');
-    headers.set('x-forwarded-host', req.headers.host || '');
-
-    // 3. Forward request
-    const response = await fetch(targetUrl, {
-      headers,
+    // 2. Forward request without modifying headers
+    const response = await fetch(targetUrl.toString(), {
       method: req.method,
-      body: req.method === 'GET' || req.method === 'HEAD' ? undefined : req,
+      body: ['GET', 'HEAD'].includes(req.method) ? undefined : req,
       redirect: 'manual'
     });
 
-    // 4. Forward response headers
-    response.headers.forEach((value, key) => {
-      if (!['content-encoding'].includes(key.toLowerCase())) {
-        res.setHeader(key, value);
-      }
-    });
-
-    // 5. Stream response
+    // 3. Stream response directly without header processing
+    res.status(response.status);
     if (response.body) {
       response.body.pipe(res);
     } else {
