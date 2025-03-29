@@ -3,34 +3,48 @@ import { Headers } from 'node-fetch';
 
 export default async (req, res) => {
   try {
-    // 1. Construct target URL (使用IP但强制Host头)
+    // 1. Construct target URL
     const path = Array.isArray(req.query.path) ? req.query.path.join('/') : '';
     const search = req.url.includes('?') ? req.url.split('?')[1] : '';
-    const targetUrl = new URL(`https://50.116.4.196/${path}${search ? `?${search}` : ''}`);
+    const targetUrl = new URL(`https://greasyfork.org/${path}${search ? `?${search}` : ''}`);
 
-    // 2. 准备特殊处理的headers
-    const headers = new Headers();
-    Object.entries(req.headers).forEach(([key, value]) => {
-      if (value && typeof value === 'string' && key.toLowerCase() !== 'host') {
-        headers.set(key, value);
-      }
+    // 2. Prepare headers to mimic browser
+    const headers = new Headers({
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.5',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+      'Referer': 'https://greasyfork.org/',
+      'Connection': 'keep-alive'
     });
     
-    // 强制设置Host头并添加SNI指示
-    headers.set('Host', 'greasyfork.org');
-    headers.set('X-Forwarded-Server', 'greasyfork.org');
-    
-    // 3. 特殊fetch配置
+    // Copy selected headers from original request
+    if (req.headers['accept']) headers.set('Accept', req.headers['accept']);
+    if (req.headers['accept-language']) headers.set('Accept-Language', req.headers['accept-language']);
+
+    // 3. Forward request with proper headers
     const response = await fetch(targetUrl.toString(), {
       headers,
       method: req.method,
       body: ['GET', 'HEAD'].includes(req.method) ? undefined : req,
       redirect: 'manual',
-      // 强制使用TLS SNI
-      agent: https.globalAgent // 需要添加: import https from 'https'
+      credentials: 'include' // Important for cookies
     });
 
-    // ...其余代码保持不变...
+    // 4. Forward response with headers
+    response.headers.forEach((value, key) => {
+      if (!['content-encoding', 'transfer-encoding'].includes(key.toLowerCase())) {
+        res.setHeader(key, value);
+      }
+    });
+    
+    res.status(response.status);
+    
+    // 5. Stream response
+    if (response.body) {
+      response.body.pipe(res);
+    } else {
+      res.end();
+    }
     
   } catch (error) {
     console.error('Proxy error:', error);
