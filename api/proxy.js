@@ -1,39 +1,38 @@
-import { Headers } from 'node-fetch';
+// api/[[...path]].js
+import fetch from 'node-fetch';
 
 export default async (req, res) => {
   try {
-    // Construct target URL
-    const baseUrl = 'https://example.com';
+    // 1. Construct target URL
     const path = req.query.path?.join('/') || '';
-    const search = req.url.includes('?') ? req.url.split('?')[1] : '';
-    const targetUrl = new URL(`${baseUrl}/${path}${search ? `?${search}` : ''}`);
+    const targetUrl = new URL(`https://example.com/${path}`);
+    
+    // 2. Clone and modify headers
+    const headers = { ...req.headers };
+    delete headers.host;
+    delete.headers.referer;
+    headers['x-forwarded-host'] = req.headers.host;
 
-    // Clone and clean headers
-    const headers = new Headers(req.headers);
-    headers.delete('host');
-    headers.set('x-forwarded-for', req.headers['x-real-ip'] || req.socket.remoteAddress);
-
-    // Forward request
-    const response = await fetch(targetUrl, {
+    // 3. Forward the request
+    const response = await fetch(targetUrl.toString(), {
       headers,
       method: req.method,
-      body: req.method !== 'GET' && req.method !== 'HEAD' ? req : undefined,
-      redirect: 'follow'
+      body: req.method === 'GET' || req.method === 'HEAD' ? undefined : req,
+      redirect: 'manual'
     });
 
-    // Forward response
-    res.status(response.status);
-    response.headers.forEach((value, key) => {
-      if (!['content-encoding', 'transfer-encoding'].includes(key.toLowerCase())) {
+    // 4. Forward response headers
+    for (const [key, value] of response.headers) {
+      if (!['content-encoding'].includes(key.toLowerCase())) {
         res.setHeader(key, value);
       }
-    });
-    
-    const buffer = await response.arrayBuffer();
-    res.end(Buffer.from(buffer));
+    }
+
+    // 5. Stream the response
+    response.body.pipe(res);
     
   } catch (error) {
-    console.error('Proxy Error:', error.message);
-    res.status(500).json({ error: 'Proxy failed', details: error.message });
+    console.error('Proxy error:', error);
+    res.status(500).json({ error: 'Proxy failed', message: error.message });
   }
-}
+};
