@@ -4,7 +4,7 @@ export default async (req, res) => {
   try {
     // Prepare target URL
     const path = req.query.path?.join('/') || '';
-    const targetUrl = new URL(`https://greasyfork.org/${path}${req.url.split('?')[1] || ''}`);
+    const targetUrl = new URL(`https://example.com/${path}${req.url.split('?')[1] || ''}`);
 
     // Proxy the request
     const headers = new Headers(req.headers);
