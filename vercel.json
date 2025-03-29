@@ -5,11 +5,5 @@
       "source": "/(.*)",
       "destination": "/api/proxy"
     }
-  ],
-  "functions": {
-    "api/proxy.js": {
-      "runtime": "edge",
-      "memory": 1024
-    }
-  }
+  ]
 }
