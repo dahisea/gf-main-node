@@ -1,9 +1,16 @@
 {
   "version": 2,
-  "routes": [
+  "public": false,
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "/api/proxy.js"
+      "source": "/(.*)",
+      "destination": "/api/proxy"
     }
-  ]
+  ],
+  "functions": {
+    "api/proxy.js": {
+      "runtime": "edge",
+      "memory": 1024
+    }
+  }
 }
