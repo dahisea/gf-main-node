@@ -26,7 +26,7 @@ export default async (req, res) => {
       headers,
       method: req.method,
       body: ['GET', 'HEAD'].includes(req.method) ? undefined : req,
-      redirect: 'manual',
+      redirect: 'follow',
       credentials: 'include' // Important for cookies
     });
 
