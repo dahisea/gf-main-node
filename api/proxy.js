@@ -5,7 +5,7 @@ export default async (req, res) => {
     // 1. Construct target URL
     const path = Array.isArray(req.query.path) ? req.query.path.join('/') : '';
     const search = req.url.includes('?') ? req.url.split('?')[1] : '';
-    const targetUrl = new URL(`https://example.com/${path}${search ? `?${search}` : ''}`);
+    const targetUrl = new URL(`https://greasyfork.org/${path}${search ? `?${search}` : ''}`);
 
     // 2. Forward request without modifying headers
     const response = await fetch(targetUrl.toString(), {
